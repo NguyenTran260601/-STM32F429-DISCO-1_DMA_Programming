@@ -1,0 +1,83 @@
+/*
+ * it.c
+ *
+ *  Created on: Mar 26, 2023
+ *      Author: Nguyen Tran
+ */
+
+
+#include "main.h"
+#include "it.h"
+
+
+
+void EXTI0_IRQHandler(void)
+{
+	TurnOn_UserLed();
+	UART_Send_Request_DMA();
+
+	Clear_EXTI_Pending_Bit();
+}
+
+
+void DMA1_Stream3_IRQHandler(void)
+{
+	/* Half-transfer */
+	if(Half_Transfer())
+	{
+		DMA_HT_Complete_Callback();
+	}else if(Full_Transfer())
+	{
+		DMA_FT_Complete_Callback();
+	}else if(Transfer_Error())
+	{
+		DMA_TE_Error_Callback();
+	}else if(FIFO_overrun_underrun())
+	{
+		DMA_FE_Error_Callback();
+	}else if(Direct_mode_error())
+	{
+		DMA_DME_Error_Callback();
+	}
+}
+
+
+
+static uint8_t Half_Transfer(void)
+{
+
+}
+
+
+static uint8_t Full_Transfer(void)
+{
+
+}
+
+static uint8_t Transfer_Error(void)
+{
+
+}
+
+
+
+static void Clear_EXTI_Pending_Bit(void)
+{
+	if((EXTI->PR & (1 << 0)))
+	{
+		EXTI->PR &= ~(1 << 0);
+	}
+}
+
+
+static void TurnOn_UserLed(void)
+{
+	GPIOG -> ODR |= USER_LED;
+}
+
+
+
+static void UART_Send_Request_DMA(void)
+{
+	USART3->CR3 |= DMA_ENABLE_TRANSMITTER;
+}

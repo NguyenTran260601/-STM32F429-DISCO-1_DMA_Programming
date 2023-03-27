@@ -1,0 +1,4 @@
+../Src/it.c:14:6:EXTI0_IRQHandler	8	static
+../Src/it.c:27:13:Clear_EXTI_Pending_Bit	4	static
+../Src/it.c:36:13:TurnOn_UserLed	4	static
+../Src/it.c:43:13:UART_Send_Request_DMA	4	static

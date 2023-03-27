@@ -1,0 +1,16 @@
+/*
+ * data_stream.c
+ *
+ *  Created on: Mar 25, 2023
+ *      Author: Nguyen Tran
+ */
+
+#include <stdint.h>
+
+const uint8_t *data_stream = "Memory to peripheral data transfer \ 
+==================================================\
+		There are 2 modes: \
+		1. Direct mode (without FIFO)\
+		2. FIFO mode ";
+
+uint32_t data_len = sizeof(data_stream);

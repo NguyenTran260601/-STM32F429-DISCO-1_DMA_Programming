@@ -1,0 +1,221 @@
+/*
+ * main.c
+ *
+ *  Created on: Mar 26, 2023
+ *      Author: Nguyen Tran
+ */
+
+#include "main.h"
+
+static void Uart3_Set_Baudrate(uint32_t peripher_clk, uint32_t baudrate);
+static uint16_t Caculate_Uart_Baudrate(uint32_t peripher_clk, uint32_t baudrate);
+static void Enable_DMA1_Stream3(void);
+static void DMA1_IT_Configure(void);
+
+extern void UART_Send_Request_DMA(void);
+
+char dma_data[] = "Some DMA data...\r\n";
+
+int main(void)
+{
+	Button_Init();
+	UserLed_Init();
+	UART3_Init();
+	DMA1_Init();
+	DMA1_IT_Configure();
+	Enable_DMA1_Stream3();
+	UART3_Transmit_Data();
+
+
+	while(1);
+	return 0;
+}
+
+
+void Button_Init(void)
+{
+	/* User button connect to PA0 */
+	/* Enable the clock for GPIOA, SYSCFG */
+	RCC->AHB1ENR |= GPIOA_CLK_EN;
+	RCC->APB2ENR |= SYSCFG_CLK_EN;
+
+	/* Configure mode input */
+	GPIOA->MODER &= GPIOA_MODE_INPUT;
+
+	/* Configure the edge detection on PA0 */
+	EXTI->FTSR |= FALLING_EDGE_LINE0_ENBALE;
+
+	/* Enable the interrupt over PA0 */
+	EXTI->IMR |= IRQ_LINE0_ENBALE;
+
+	/* Configure the SYSCFG CR1*/
+	SYSCFG->EXTICR[0] &= ~(0xF << 0);
+
+	/* Enable the IRQ relate to PA0 in NVIC of the Cortex-M4 */
+	NVIC->ISER[0] |= (1U << EXTI0_IRQn);
+}
+
+
+void UserLed_Init(void)
+{
+	/* Enable clock */
+	RCC -> AHB1ENR |= GPIOG_CLK_EN;
+
+	/* Set mode output */
+	GPIOG -> MODER |= (1U << 26);
+	GPIOG -> MODER &= ~(1U << 27);
+}
+
+
+
+void UART3_Init(void)
+{
+	/***Configure UART_TX and RX GPIO pin PA9 PA10***/
+	/* Enable clock */
+	RCC->AHB1ENR |= GPIOB_CLK_EN;
+
+	/* UART TX pin PA10 */
+	/* Set AF mode (AF07)*/
+	GPIOB->MODER &= ~(0x3 << 20); //clear
+	GPIOB->MODER |= GPIOB_PIN10_MODE_AF;
+
+	GPIOB->AFR[1] &= ~(0xF << 8); //clear
+	GPIOB->AFR[1] |= GPIOB_PIN10_AF7; //AFRHigh register
+
+	/* Pull up/ Pull down control for UART1 RX (PA10) */
+	GPIOB->PUPDR |= GPIOB_PIN10_PU; //Pull-up
+
+	/* UART RX pin PA10 */
+	/* Set AF mode (AF07)*/
+	GPIOB->MODER &= ~(0x3 << 22); //clear
+	GPIOB->MODER |= GPIOB_PIN11_MODE_AF;
+
+	GPIOB->AFR[1] &= ~(0xF << 12); //clear
+	GPIOB->AFR[1] |= GPIOB_PIN11_AF7; //AFRHigh register
+
+	/* Pull up/ Pull down control for UART1 RX (PA10) */
+	GPIOB->PUPDR |= GPIOB_PIN11_PU; //Pull-up
+
+	/***Configure UART***/
+	/* Enable clock UART1 */
+	RCC->APB1ENR |= UART3_CLK_EN;
+	/* Configure baudrate */
+	Uart3_Set_Baudrate(APB1_CLK, UART_BAUDRATE);
+
+	/* Configure transfer direction */
+	USART3->CR1 = UART3_CR1_TE; //clear anything and set TE is 1
+	/* Enable UART module */
+	USART3->CR1 |= UART3_CR1_UE;
+}
+
+
+
+static void Uart3_Set_Baudrate(uint32_t peripher_clk, uint32_t baudrate)
+{
+	USART3->BRR = Caculate_Uart_Baudrate(peripher_clk, baudrate);
+}
+
+
+static uint16_t Caculate_Uart_Baudrate(uint32_t peripher_clk, uint32_t baudrate)
+{
+	return ((peripher_clk + (baudrate/2U))/baudrate);
+}
+
+
+void UART3_Transmit_Data(void)
+{
+	char somedata[] = "Application is running...\r\n";
+
+	uint32_t data_len = sizeof(somedata);
+
+	/* Write to the transmit data register*/
+	for( uint32_t i = 0 ; i < data_len ; i++)
+	{
+		/* Make sure transmit data register is empty */
+		while(!(USART3->SR & UART3_SR_TXE)); // check TXE field
+		USART3->DR = somedata[i];
+	}
+}
+
+
+void DMA1_Init(void)
+{
+	/* Identify the stream and channel mapped with peripheral:
+	   	   UART3_TX Stream 3, Channel 4 */
+	/* Enable clock for DMA2 */
+	RCC->AHB1ENR |= DMA1_CLK_EN;
+
+	/* Select channel */
+	DMA1_Stream3->CR &= ~(0x7 << 25); //clear CHSEL field
+	DMA1_Stream3->CR |= DMA1_CHANNEL_4;
+	/* Source address */
+	DMA1_Stream3->M0AR = (uint32_t)dma_data;
+	/* Destination address */
+	DMA1_Stream3->PAR = (uint32_t)&USART3->DR;
+	/* Number of data items to send */
+	uint32_t len = sizeof(dma_data);
+	DMA1_Stream3->NDTR = len;
+	/* The direction of data transfer m2p, p2m, m2m	 */
+	DMA1_Stream3->CR |= DMA1_DIRECTION_M2P;
+	/* The source and destination data width */
+	DMA1_Stream3->CR &= ~(0x3U << 13); //clear MSIZE field (Byte)
+	DMA1_Stream3->CR &= ~(0x3U << 11); //clear PSIZE field (Byte)
+	/* Enable memory auto increment */
+	DMA1_Stream3->CR |= DMA1_AUTO_INC_ADDR;
+	/* Direct mode or FIFO mode	*/
+	DMA1_Stream3->FCR |= DMA1_DIRECT_MODE_DIS; //Disable direct mode
+	/* Select the FIFO threshold */
+	DMA1_Stream3->FCR &= ~(0x3U << 0); //clear
+	DMA1_Stream3->FCR |= DMA1_FULL_FIFO_MODE; //Full FIFO
+
+}
+
+static void Enable_DMA1_Stream3(void)
+{
+	/* Enable the stream */
+	DMA1_Stream3->CR |= DMA1_STREAM_ENABLE;
+}
+
+
+
+static void DMA1_IT_Configure(void)
+{
+	/* Half-transfer IE  (HTIE) */
+	DMA1_Stream3->CR |= DMA1_HTIE_FLAG;
+	/* Transfer complete (TCIE) */
+	DMA1_Stream3->CR |= DMA1_TCIE_FLAG;
+	/* Transfer error (TEIE) */
+	DMA1_Stream3->CR |= DMA1_TEIE_FLAG;
+	/* FIFO overrun/underrun (FEIE)*/
+	DMA1_Stream3->FCR |= DMA1_FEIE_FLAG;
+	/* Direct mode error (DMEIE) */
+	DMA1_Stream3->CR |= DMA1_DMEIE_FLAG;
+
+	/* Enable IRQ for DMA1_Stream3 */
+	NVIC->ISER[0] |= (1U << DMA1_Stream3_IRQn);
+}
+
+
+void DMA_HT_Complete_Callback(void)
+{
+
+}
+void DMA_FT_Complete_Callback(void)
+{
+
+	Enable_DMA1_Stream3();
+	UART_Send_Request_DMA();
+}
+void DMA_TE_Error_Callback(void)
+{
+	while(1);
+}
+void DMA_FE_Error_Callback(void)
+{
+	while(1);
+}
+void DMA_DME_Error_Callback(void)
+{
+	while(1);
+}
+

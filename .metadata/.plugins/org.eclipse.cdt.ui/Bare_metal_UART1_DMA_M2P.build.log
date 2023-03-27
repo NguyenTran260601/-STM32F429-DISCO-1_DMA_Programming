@@ -1,0 +1,26 @@
+22:51:29 **** Build of configuration Debug for project Bare_metal_UART1_DMA_M2P ****
+make -j8 all 
+arm-none-eabi-gcc -mcpu=cortex-m4 -g3 -DDEBUG -c -x assembler-with-cpp -MMD -MP -MF"Startup/startup_stm32f429zitx.d" -MT"Startup/startup_stm32f429zitx.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Startup/startup_stm32f429zitx.o" "../Startup/startup_stm32f429zitx.s"
+arm-none-eabi-gcc "../Src/it.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DSTM32F429I_DISC1 -DSTM32 -DSTM32F429ZITx -DSTM32F4 -c -I../Inc -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Src/it.d" -MT"Src/it.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Src/it.o"
+arm-none-eabi-gcc "../Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DSTM32F429I_DISC1 -DSTM32 -DSTM32F429ZITx -DSTM32F4 -c -I../Inc -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Src/main.d" -MT"Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Src/main.o"
+arm-none-eabi-gcc "../Src/syscalls.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DSTM32F429I_DISC1 -DSTM32 -DSTM32F429ZITx -DSTM32F4 -c -I../Inc -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Src/syscalls.d" -MT"Src/syscalls.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Src/syscalls.o"
+arm-none-eabi-gcc "../Src/sysmem.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DSTM32F429I_DISC1 -DSTM32 -DSTM32F429ZITx -DSTM32F4 -c -I../Inc -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Src/sysmem.d" -MT"Src/sysmem.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Src/sysmem.o"
+In file included from ../Inc/main.h:12,
+                 from ../Src/main.c:8:
+../Inc/stm32f429xx.h:173:10: fatal error: core_cm4.h: No such file or directory
+  173 | #include "core_cm4.h"             /* Cortex-M4 processor and core peripherals */
+      |          ^~~~~~~~~~~~
+compilation terminated.
+In file included from ../Inc/main.h:12,
+                 from ../Src/it.c:9:
+../Inc/stm32f429xx.h:173:10: fatal error: core_cm4.h: No such file or directory
+  173 | #include "core_cm4.h"             /* Cortex-M4 processor and core peripherals */
+      |          ^~~~~~~~~~~~
+compilation terminated.
+make: *** [Src/subdir.mk:28: Src/main.o] Error 1
+make: *** Waiting for unfinished jobs....
+make: *** [Src/subdir.mk:28: Src/it.o] Error 1
+"make -j8 all" terminated with exit code 2. Build might be incomplete.
+
+22:51:29 Build Failed. 5 errors, 0 warnings. (took 359ms)
+

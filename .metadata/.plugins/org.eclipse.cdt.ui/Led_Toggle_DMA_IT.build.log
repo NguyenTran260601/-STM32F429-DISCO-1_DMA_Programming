@@ -1,0 +1,10 @@
+15:32:12 **** Incremental Build of configuration Debug for project Led_Toggle_DMA_IT ****
+make -j8 all 
+arm-none-eabi-size   Led_Toggle_DMA_IT.elf 
+   text	   data	    bss	    dec	    hex	filename
+   9392	     24	   1664	  11080	   2b48	Led_Toggle_DMA_IT.elf
+Finished building: default.size.stdout
+ 
+
+15:32:12 Build Finished. 0 errors, 0 warnings. (took 243ms)
+

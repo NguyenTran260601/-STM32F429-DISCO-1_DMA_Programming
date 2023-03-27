@@ -1,0 +1,14 @@
+14:14:55 **** Incremental Build of configuration Debug for project Bare_metal_UART_DMA_M2P2_IT ****
+make -j8 all 
+arm-none-eabi-size   Bare_metal_UART_DMA_M2P2_IT.elf 
+   text	   data	    bss	    dec	    hex	filename
+   1984	     36	   1564	   3584	    e00	Bare_metal_UART_DMA_M2P2_IT.elf
+Finished building: default.size.stdout
+ 
+14:15:02 **** Incremental Build of configuration Debug for project Bare_metal_UART_DMA_M2P2_IT ****
+make -j8 all 
+arm-none-eabi-size   Bare_metal_UART_DMA_M2P2_IT.elf 
+   text	   data	    bss	    dec	    hex	filename
+   1984	     36	   1564	   3584	    e00	Bare_metal_UART_DMA_M2P2_IT.elf
+Finished building: default.size.stdout
+ 
